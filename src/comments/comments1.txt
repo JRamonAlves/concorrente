@@ -1,0 +1,14 @@
+# Solução serial
+As tarefas sempre executam na mesma ordem:
+- Configuração de logs
+- Verificação de recursos, indo em ordem do primeiro ao quinto recurso.
+
+Essa primeira etapa sempre toma pouco mais de 4 segundos para finalizar, enquanto cada 
+verificação de recurso toma entre 1 e 3 segundosn tendo 5 verificações no total.
+No melhor caso, cada verificação vai ser o mais rápido possível, resultando em:
+
+    4 + 1 * 5 = 9 segundos
+
+No pior caso, quando as verificações forem o mais devagar possível, teremos:
+
+    4 + 3 * 5 = 19 segundos
