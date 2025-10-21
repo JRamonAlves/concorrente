@@ -1,0 +1,26 @@
+# Q1) Execute o código e analise a saída. Há algo diferente em relação
+à execução serial?
+
+Sim, ele é notavelmente mais rápido em média, e os logs mostram que as coisas acontecem ao mesmo tempo
+em threads separados (antes era tudo no main) e dedicados,
+a verificação começa antes da configuração acabar e o thread main acaba antes dos outros 2.
+Entretando, as 5 verificações de recursos ainda são sequenciais.
+
+# Q2) O que mudou em relação ao código anterior? Há diferença entre
+depurar a execução do código anterior e o mais atual? Se sim, qual?
+
+As threads agora tem nomes semânticos invés de genéricos, ficando mais fácil de saber de qual
+tarefa veio qual mensagem, facilitando a depuração.
+
+# Q3) Analisando especificamente o fluxo de execução da thread principal
+(main) através dos logs de saída,  como ela se comporta? Quando a
+thread se inicia e quando é finalizada?
+
+A main cria e inicia as duas outras threads. Ela se inicia quando o programa começa, e termina 
+logo após inicializar as duas threads filhas, geralmente antes delas finalizarem.
+
+# Q4) O que aconteceu após a inserção do código? O fluxo de execução
+foi alterado? Se sim, o que mudou?
+
+Sim, agora a main realmente termina no final do programa como o log evidencia. Ela espera
+as duas threads filhas finalizarem para ser finalizada.
