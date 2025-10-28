@@ -1,0 +1,10 @@
+Não houve alteração na ordem em todas as execuções que fizemos, mesmo com parâmetros
+diferentes a ordem de execução seguiu a mesma. A ordem que se apresentou foi:
+
+- Professor 1 colocando as notas da turma 1
+- Professor 2 colocando as notas da turma 2
+
+A partir daqui os professores alternam nas turmas remanescentes.
+No final as notas são registradas na mesma ordem.
+
+Por fim aparecem os logs sobre os tempos.
