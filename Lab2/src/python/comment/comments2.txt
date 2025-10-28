@@ -19,5 +19,5 @@ posição com threads diferentes.
 
 Não, porque a programação concorrente foi aplicada corretamente, concluindo a tarefa 
 mais rápido que de forma serial, não há nenhuma condição de corrida e as sub-tarefas
-são executadas na ordem correta quando necessário.
+que dependem de ordem são executadas na ordem correta.
 
