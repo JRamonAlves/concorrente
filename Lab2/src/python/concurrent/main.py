@@ -17,6 +17,9 @@ class Classes:
         self.class_ids: List[int] = list(range(1, num_classes + 1))
         self.num_students_per_class: int = num_students_per_class
 
+        # Onde vai ser armazenado a maior nota de cada turma 
+        self.max_notas: List[float] = [0 for _ in range(num_classes)]
+
         self.semester_registry: Dict[str, Dict[str, Optional[Any]]] = self._generate_semester_registry()
 
     def _generate_student_grade(self) -> str:
@@ -57,6 +60,10 @@ class Classes:
             grade = self._generate_student_grade()
             self.semester_registry[student_id]["final_grade"] = grade
 
+            # Guarda maior nota 
+            if self.max_notas[class_id - 1] < float(grade):
+                self.max_notas[class_id - 1] = float(grade)
+
             print(f"{professor} corrected Student {student_id} from class {class_id} - Grade: {grade}")
             time.sleep(random.uniform(0.1, 0.3))
 
@@ -73,6 +80,7 @@ class Classes:
                 f"class_id: {class_id}, "
                 f"final_grade: {self.semester_registry[student_id]['final_grade']}"
             )
+        print(f"Highest grade: {self.max_notas[class_id - 1]}")
 
 
 if __name__ == "__main__":
@@ -92,6 +100,7 @@ if __name__ == "__main__":
 
     for class_id in semester.class_ids:
         t = threading.Thread(target=semester.process_grades, args=(class_id,))
+        t.start()
         threads.append(t)
     
     for t in threads:
