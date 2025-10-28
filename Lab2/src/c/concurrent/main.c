@@ -23,7 +23,10 @@ typedef struct {
     Student registry[MAX_STUDENTS];
     char *professors[2];
     int class_ids[MAX_CLASSES];
+    /* Onde vai ser armazenado a maior nota de cada turma*/    
+    double notas_max[MAX_CLASSES];
 } Classes;
+
 
 /* Generate random student ID */
 void generate_student_id(char *buffer) {
@@ -87,6 +90,11 @@ void process_grades(Classes *c, int class_id) {
         s->final_grade = grade;
         s->has_grade = 1;
 
+        /* Computa de quem vai ser a maior nota e armazena*/
+        if (c->notas_max[class_id - 1] < grade) {
+            c->notas_max[class_id - 1] = grade;
+        }
+
         printf("%s corrected Student %s from class %d - Grade: %.2f\n", professor, s->student_id, class_id, grade);
         fflush(stdout);
         random_sleep(0.1, 0.3);
@@ -110,6 +118,9 @@ void registry_to_string(Classes *c, int class_id) {
         else
             printf("None\n");
     }
+    /* Printa a maior nota de cada turma*/
+    printf("Highest grade was: %.2f\n", c->notas_max[class_id - 1]);
+
 }
 
 /* Initialize Classes structure */
@@ -166,6 +177,10 @@ int main(int argc, char *argv[]) {
         args[i].classes_ptr = &semester;
         args[i].class_id = semester.class_ids[i];
         pthread_create(&threads[i], NULL, process_grades_thread, &args[i]);
+    }
+
+    for (int i = 0; i < semester.num_classes; i++) {
+        pthread_join(threads[i], NULL);
     }
 
     for (int i = 0; i < semester.num_classes; i++) {

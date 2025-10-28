@@ -1,0 +1,23 @@
+1) Ao implementar esta solução, você chegou a compartilhar
+algum espaço na memória (variável) entre as diferentes threads
+filhas e mãe? Se sim, qual?
+
+Sim, uma array dentro de Classes com as notas onde todas as threads escrevem e leem de
+lá.
+
+2) Isso pode levar a condições corridas?
+
+Na prática não, pois cada thread lê e escreve em uma posição exclusiva no array,
+nunca realmente acessando a mesma posição de memória ao mesmo tempo que outra thread.
+
+3) As múltiplas threads estão atualizando o mesmo espaço na memória?
+
+Não, pois apesar de estarmos compartilhando o mesmo array não atualizamos a mesma 
+posição com threads diferentes.
+
+4) Temos algum problema na solução desenvolvida? Por que sim ou por que não?
+
+Não, porque a programação concorrente foi aplicada corretamente, concluindo a tarefa 
+mais rápido que de forma serial, não há nenhuma condição de corrida e as sub-tarefas
+são executadas na ordem correta quando necessário.
+
