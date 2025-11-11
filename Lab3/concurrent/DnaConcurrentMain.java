@@ -2,12 +2,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
 public class DnaConcurrentMain {
 
-    static long total = 0;
+    static Contador total = new Contador();
 
     public static void main(String[] args) {
         if (args.length < 2) {
@@ -33,7 +34,7 @@ public class DnaConcurrentMain {
 
         Thread[] threads = new Thread[files.length];
         for (int i = 0; i < files.length; i++) {
-            threads[i] = new Thread(new ContaArquivo(files[i], pattern), "Arquivo " + i);
+            threads[i] = new Thread(new ContaArquivo(files[i], pattern, total), "Arquivo " + i);
             threads[i].start();
         }
 
@@ -46,7 +47,7 @@ public class DnaConcurrentMain {
             }
         }
 
-        System.out.println("Sequência " + pattern + " foi encontrada " + total + " vezes.");
+        System.out.println("Sequência " + pattern + " foi encontrada " + total.conta + " vezes.");
 
     }
 }
@@ -55,28 +56,47 @@ class ContaArquivo implements Runnable {
 
     private File file;
     private String pattern;
-    protected long totalArquivo = 0;
+    protected Contador total;
+    protected Contador totalArquivo = new Contador();
     protected List<Thread> threadsLinhas = new ArrayList<>();
 
-    ContaArquivo(File file, String pattern) {
+    ContaArquivo(File file, String pattern, Contador total) {
         this.file = file;
         this.pattern = pattern;
+        this.total = total;
     }
 
     @Override
     public void run() {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
+            int iLinha = 0;
             while ((line = br.readLine()) != null) {
                 line = line.trim();
                 if (!line.isEmpty()) {
-                    threadsLinhas.add(new Thread(new ContaLinha(line, pattern)));
+                    Thread thr = new Thread(new ContaLinha(line, pattern, totalArquivo),
+                            "Arquivo " + file.getName() + " Conta Linha " + iLinha);
+                    threadsLinhas.add(thr);
+                    thr.start();
                 }
+                iLinha++;
             }
         } catch (IOException e) {
             System.err.println("Erro ao ler arquivos: " + e.getMessage());
             System.exit(4);
         }
+
+        for (Thread t : threadsLinhas) {
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.out.println("catchou na Linha");
+            }
+        }
+
+        total.soma(totalArquivo.conta);
+
     }
 
 }
@@ -85,10 +105,12 @@ class ContaLinha implements Runnable {
 
     private String sequence;
     private String pattern;
+    protected Contador totalArquivo;
 
-    ContaLinha(String sequence, String pattern) {
+    ContaLinha(String sequence, String pattern, Contador totalArquivo) {
         this.sequence = sequence;
         this.pattern = pattern;
+        this.totalArquivo = totalArquivo;
     }
 
     @Override
@@ -101,12 +123,34 @@ class ContaLinha implements Runnable {
         if (m == 0 || n < m)
             return;
 
-        long count = 0;
         for (int i = 0; i <= n - m; i++) {
             if (sequence.regionMatches(false, i, pattern, 0, m))
-                count++;
+                totalArquivo.incrementa();
         }
 
     }
 
+}
+
+class Contador {
+    int conta = 0;
+    private Semaphore mutex = new Semaphore(1);
+
+    public void incrementa() {
+        try {
+            mutex.acquire();
+            conta++;
+            mutex.release();
+        } catch (InterruptedException e) {
+        }
+    }
+
+    public void soma(int receba) {
+        try {
+            mutex.acquire();
+            conta += receba;
+            mutex.release();
+        } catch (InterruptedException e) {
+        }
+    }
 }
