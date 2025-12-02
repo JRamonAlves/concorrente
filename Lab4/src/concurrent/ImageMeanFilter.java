@@ -1,6 +1,8 @@
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Semaphore;
+
 import javax.imageio.ImageIO;
 
 /**
@@ -60,14 +62,18 @@ public class ImageMeanFilter {
 
         int linhasPorThread = originalImage.getHeight() / nThreads;
         int restoLinhas = originalImage.getHeight() % nThreads;
+
+        Counter filtrados = new Counter();
+        Counter iguais = new Counter();
+
         
         Thread[] threads = new Thread[nThreads];
-        threads[0] = new Thread(new AppliesMeanFilter(0, linhasPorThread + restoLinhas, originalImage, filteredImage));
+        threads[0] = new Thread(new AppliesMeanFilter(0, linhasPorThread + restoLinhas, originalImage, filteredImage, filtrados, iguais));
         threads[0].start();
 
         int lastLine = linhasPorThread + restoLinhas;
         for (int i = 1; i < nThreads; i++) {
-            threads[i] = new Thread(new AppliesMeanFilter(lastLine, lastLine + linhasPorThread, originalImage, filteredImage));
+            threads[i] = new Thread(new AppliesMeanFilter(lastLine, lastLine + linhasPorThread, originalImage, filteredImage, filtrados, iguais));
             threads[i].start();
             lastLine += linhasPorThread;
         }
@@ -81,10 +87,13 @@ public class ImageMeanFilter {
         }
 
         try {
-            ImageIO.write(filteredImage, "jpg", new File("filtered_output1.jpg"));
+            ImageIO.write(filteredImage, "jpg", new File("filtered_output.jpg"));
         } catch (IOException e) {            
             System.err.println("Error processing image: " + e.getMessage());
         }
+
+        System.out.println("Celulas afetadas: " + filtrados.pegaCounta());
+        System.out.println("Celulas não afetadas: " + iguais.pegaCounta());
         
     }
 }
@@ -103,13 +112,17 @@ class AppliesMeanFilter implements Runnable{
 
     private int start, end;
     private BufferedImage originalImage, filtredImage; 
+    private Counter filtrados;
+    private Counter iguais;
 
 
-    public AppliesMeanFilter(int start, int end, BufferedImage originalImage, BufferedImage filteredImage) {
+    public AppliesMeanFilter(int start, int end, BufferedImage originalImage, BufferedImage filteredImage, Counter filtrados, Counter iguais) {
         this.end = end;
         this.start = start;
         this.filtredImage = filteredImage;
         this.originalImage = originalImage;
+        this.filtrados = filtrados;
+        this.iguais = iguais;
     }   
 
     @Override
@@ -118,7 +131,7 @@ class AppliesMeanFilter implements Runnable{
     }
     
 
-    private static int[] calculateNeighborhoodAverage(BufferedImage image, int centerX, int centerY, int kernelSize) {
+    private int[] calculateNeighborhoodAverage(BufferedImage image, int centerX, int centerY, int kernelSize) {
         int width = image.getWidth();
         int height = image.getHeight();
         int pad = kernelSize / 2;
@@ -152,32 +165,63 @@ class AppliesMeanFilter implements Runnable{
             }
         }
 
-                // Calculate average
-        return new int[] {
+        int rgb = image.getRGB(centerX, centerY);
+        int red = (rgb >> 16) & 0xFF;
+        int green = (rgb >> 8) & 0xFF;
+        int blue = rgb & 0xFF;
+
+        int[] out = new int[] {
             (int)(redSum / pixelCount),
             (int)(greenSum / pixelCount),
             (int)(blueSum / pixelCount)
         };
+
+        if (red != out[0] || green != out[1] || blue != out[2]) {
+            this.filtrados.incrementa();
+        } else {
+            this.iguais.incrementa();
+        }
+
+        return out;
     }
 
-    public static void applyMeanFilter(BufferedImage originalImage, BufferedImage filteredImage,int start, int end) {
+    public void applyMeanFilter(BufferedImage originalImage, BufferedImage filteredImage,int start, int end) {
     
-    // Image processing
-    int width = originalImage.getWidth();
-    // Process each pixel
-    for (int y = start; y < end; y++) {
-        for (int x = 0; x < width; x++) {
-            // Calculate neighborhood average
-            int[] avgColor = calculateNeighborhoodAverage(originalImage, x, y, 7);
-            
-            // Set filtered pixel
-            filteredImage.setRGB(x, y, 
-                (avgColor[0] << 16) | 
-                (avgColor[1] << 8)  | 
-                avgColor[2]
-            );
+        // Image processing
+        int width = originalImage.getWidth();
+        // Process each pixel
+        for (int y = start; y < end; y++) {
+            for (int x = 0; x < width; x++) {
+                // Calculate neighborhood average
+                int[] avgColor = calculateNeighborhoodAverage(originalImage, x, y, 7);
+                
+                // Set filtered pixel
+                filteredImage.setRGB(x, y, 
+                    (avgColor[0] << 16) | 
+                    (avgColor[1] << 8)  | 
+                    avgColor[2]
+                );
+            }
         }
     }
+
+}
+
+class Counter {
+    private int counta = 0;
+    Semaphore mutex = new Semaphore(1);
+
+    public void incrementa() {
+        try {
+            mutex.acquire();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        this.counta++;
+        mutex.release();
     }
 
+    public int pegaCounta() {
+        return this.counta;
+    }
 }

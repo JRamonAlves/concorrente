@@ -1,0 +1,4 @@
+A solução concorrente já é mais rápida que a serial para 2 threads (testando com "jotinha_noise.jpg" e "20MM_noise.jpg"). 
+Usando "jotinha_noise.jpg" como teste, já atingimos a melhor performance de 8 segundos com 4 threads, ficando basicamente
+constante até 1000 threads. Já para "20MM_noise.jpg" ele aumenta a velocidade até aproximadamente 1000 threads, e por volta 
+de 2000 threads a performance cai por causa do overhead de criação de threads.
