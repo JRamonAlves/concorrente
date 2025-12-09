@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Semaphore;
+
 public class Main {
     public static void main(String[] args) {
         if (args.length != 5) {
@@ -10,17 +14,38 @@ public class Main {
         int producingTime = Integer.parseInt(args[2]);
         int numConsumers = Integer.parseInt(args[3]);
         int consumingTime = Integer.parseInt(args[4]);
+
+        int totalProducts = numConsumers * maxItemsPerProducer;
         
+        Counter counter = new Counter(totalProducts);
         Buffer buffer = new Buffer();
         
+        Semaphore bufferCheio = new Semaphore(50);
+        Semaphore bufferVazio = new Semaphore(0);
+        Semaphore mutex = new Semaphore(1);
+
+        List<Thread> threadList = new ArrayList<>();
+        
         for (int i = 1; i <= numProducers; i++) {
-            Producer producer = new Producer(i, buffer, maxItemsPerProducer, producingTime);
-            producer.produce();
+            Thread producer = new Thread(new Producer(i, buffer, maxItemsPerProducer, producingTime, bufferCheio, bufferVazio, mutex, counter));
+            threadList.add(producer);
+            producer.start();
         }
         
         for (int i = 1; i <= numConsumers; i++) {
-            Consumer consumer = new Consumer(i, buffer, consumingTime);
-            consumer.process();
+            Thread consumer = new Thread( new Consumer(i, buffer, consumingTime, bufferCheio, bufferVazio, mutex, counter));
+            threadList.add(consumer);
+            consumer.start();
         }
+
+        for (Thread t : threadList) {
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 }
+
