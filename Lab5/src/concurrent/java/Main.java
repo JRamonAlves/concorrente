@@ -15,7 +15,7 @@ public class Main {
         int numConsumers = Integer.parseInt(args[3]);
         int consumingTime = Integer.parseInt(args[4]);
 
-        int totalProducts = numConsumers * maxItemsPerProducer;
+        int totalProducts = numProducers * maxItemsPerProducer;
         
         Counter counter = new Counter(totalProducts);
         Buffer buffer = new Buffer();

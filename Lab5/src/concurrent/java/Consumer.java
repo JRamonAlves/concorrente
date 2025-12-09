@@ -23,13 +23,12 @@ class Consumer implements Runnable {
         while (true) {
             
             try { bufferVazio.acquire(); } catch (InterruptedException e) {e.printStackTrace();}
-            
+        
             if (counter.get() == 0) {
                 bufferVazio.release();
             }
-            
+
             try { mutex.acquire(); } catch (InterruptedException e) {e.printStackTrace();}
-            
 
             int item = buffer.remove();
 

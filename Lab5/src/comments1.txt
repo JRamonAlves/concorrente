@@ -1,0 +1,21 @@
+Caso 1: muitos produtores e muito mais rápidos.
+
+- Acontece o que se espera, ou seja, muitas produções juntas raramente sendo interrompidas
+por consumos, até que tudo seja produzido e então só consumos acontecem.
+
+Caso 2: Um consumidor e um produtor com a mesma velocidade
+
+- Também acontece o esperado, ou seja, eles se intercalam entre consumos e produções.
+
+Caso 3: Um produto mais rápido que um unico consumidor
+
+- Ocorrem várias produções juntas, similar ao primeiro caso.
+
+Caso 4: O consumidor é mais ráído que o unico produtor
+
+- Identico ao caso 2, pois para consumir é necessário que a produção aconteça antes
+
+Caso 5: Muitos consumidores muito mais rápidos
+
+- Também mesma situação do caso 3, sendo que como tem mais de um produtor, pode ter mais 
+de uma produção juntas
