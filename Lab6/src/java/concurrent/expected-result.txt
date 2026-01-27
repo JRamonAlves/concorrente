@@ -1,0 +1,1 @@
+Espera-se que agora as estatísticas estejam corretas e precisas quanto ao valores totais.

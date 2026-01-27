@@ -1,0 +1,12 @@
+Sobre as estatísticas do programa sem alterações:
+
+As estatísticas quando somadas não totalizam a quantidade de usuários que foi passada
+e nem necessariamente são representativas do que acontece, diversas vezes o programa 
+termina ainda indicando usuários online. Foram feitos diversos testes com números de 
+usuários variando entre 100, 1000, 5000, 10000, 50000 e 100000 usuários e todos os
+resultados foram convergentes. 
+
+Esse comportamento foi o desejado?
+
+Esse comportamento foi indesejado porque dá insegurança sobre os dados, por exemplo os valores de compras
+não correspondem a real quantidade de compras realizadas.
