@@ -18,18 +18,11 @@ func criaNumeros(ch chan int) {
 	for i := 0; i < 10_000; i++ {
 		ch <- rand.Intn(100)
 	}
-	ch <- -1
 	close(ch)
 }
 
 func printaMaiorQue50(ch chan int, join chan int) {
-	for {
-		x := <-ch
-
-		if x == -1 {
-			break
-		}
-
+	for x := range ch {
 		if x > 50 {
 			fmt.Printf("%d \n", x)
 		}

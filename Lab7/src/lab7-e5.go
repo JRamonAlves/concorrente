@@ -6,13 +6,25 @@ import (
 )
 
 func main() {
+
+	CONSUMERS := 5
+
 	join := make(chan int)
 	ch1 := make(chan int, 100)
 	ch2 := make(chan int, 100)
 
 	go criaNumeros(ch1)
 	go criaNumeros(ch2)
-	go printaMaiorQue50(ch1, ch2, join)
+
+	for i := 0; i < CONSUMERS; i++ {
+		if i%2 == 0 {
+			go printaMaiorQue50(ch2, join, i)
+		}
+		else {
+			go printaMaiorQue50(ch1, join, i)
+		}
+	}
+
 	<-join
 }
 
@@ -20,23 +32,13 @@ func criaNumeros(ch chan<- int) {
 	for i := 0; i < rand.Intn(10000); i++ {
 		ch <- rand.Intn(100)
 	}
-	close(ch)
+	ch <- -1
 }
 
-func printaMaiorQue50(ch1 <-chan int, ch2 <-chan int, join chan<- int) {
-	for x := range ch1 {
-
+func printaMaiorQue50(ch <-chan int, join chan<- int, id int) {
+	for x:= range ch {
 		if x > 50 {
-			fmt.Printf("%d \n", x)
+			fmt.Printf("Consumer %d recebeu o número %d \n", id, x)
 		}
 	}
-
-	for x := range ch2 {
-
-		if x > 50 {
-			fmt.Printf("%d \n", x)
-		}
-	}
-
-	join <- 0
 }

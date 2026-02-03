@@ -1,0 +1,50 @@
+package main
+
+import (
+	"fmt"
+	"math/rand"
+)
+
+func main() {
+	join := make(chan int)
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+
+	go criaNumeros(ch1)
+	go criaNumeros(ch2)
+	go printaMaiorQue50(ch1, ch2, join)
+	<-join
+}
+
+func criaNumeros(ch chan int) {
+	for i := 0; i < 3; i++ {
+		ch <- rand.Intn(100)
+	}
+	close(ch)
+}
+
+func printaMaiorQue50(ch1 chan int, ch2 chan int, join chan int) {
+	done1 := true
+	done2 := true
+	for {
+		select {
+		case x, done := <-ch1:
+			done1 = done
+			if x > 50 {
+				fmt.Printf("%d \n", x)
+			}
+
+		case y, done := <-ch2:
+			done2 = done
+			if y > 50 {
+				fmt.Printf("%d \n", y)
+			}
+
+		default:
+			if !done1 && !done2 {
+				join <- 0
+				return
+			}
+		}
+	}
+}
