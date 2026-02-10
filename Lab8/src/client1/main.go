@@ -266,7 +266,7 @@ func startClientServer(server *Client) {
 }
 
 func donwload(hash int, ip string, outputPath string) error {
-	conn, err := net.Dial("tcp", ip+":9090")
+	conn, err := net.Dial("tcp", ip+":9091")
 	if err != nil {
 		fmt.Print("erroratrtrgfd")
 		return fmt.Errorf("error connecting to server: %v", err)
