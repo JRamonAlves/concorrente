@@ -1,0 +1,7 @@
+Como apontado pelo texto e comentários, resolvemos implementar um mutex utilizando channels bufferizados.
+Especificamente, usamos um chan com struct vazio (que não consume espaço) e com tamanho 1, onde wait envolve
+enviar um pacote no channel e signal é receber o pacote. No segundo wait a thread vai tentar colocar
+a mensagem no canal vazio e ficar bloqueada até ela ser liberada por um signal.
+
+Para realmente proteger as estruras de dados, implementamos um light switch, permitindo várias leituras ou 1
+escrita ao mesmo tempo.

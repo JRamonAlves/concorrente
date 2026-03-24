@@ -19,6 +19,12 @@ type Client struct {
 	hashMap map[int]string
 }
 
+var writerMutex = NewMutex()
+var readerMutex = NewMutex()
+var mutex = NewMutex()
+
+var counter int = 0
+
 func NewClient(hm map[int]string) *Client {
 	return &Client{
 		hashMap: hm,
@@ -126,7 +132,9 @@ func updateServer(conn net.Conn, action string, filePath string, client *Client)
 		return
 	}
 
+	writerMutex.Wait()
 	client.hashMap[fileHash] = filePath
+	writerMutex.Signal()
 
 	fmt.Printf("Server updated: %s - %s\n", action, filePath)
 }
@@ -195,7 +203,19 @@ func (s *Client) handleDownloadRequest(conn net.Conn, decoder *gob.Decoder) {
 		return
 	}
 
+	mutex.Wait()
+	counter++
+	if counter == 1 {
+		writerMutex.Wait()
+	}
+	mutex.Signal()
 	filePath := s.hashMap[fileHash]
+	mutex.Wait()
+	counter--
+	if counter == 0 {
+		writerMutex.Signal()
+	}
+	mutex.Signal()
 
 	file, err := os.Open("./" + filePath)
 	if err != nil {
@@ -385,4 +405,22 @@ func main() {
 			fmt.Println("Invalid choice. Please enter 1, 2 or 3.")
 		}
 	}
+}
+
+type Mutex struct {
+	lock chan struct{}
+}
+
+func NewMutex() *Mutex {
+	return &Mutex{
+		lock: make(chan struct{}, 1),
+	}
+}
+
+func (m *Mutex) Wait() {
+	m.lock <- struct{}{}
+}
+
+func (m *Mutex) Signal() {
+	<-m.lock
 }
